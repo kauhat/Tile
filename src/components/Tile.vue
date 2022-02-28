@@ -1,14 +1,13 @@
 <template>
-  <div class="tile" @click="click">
+  <div class="tile" @click="reveal" @mouseleave="hide">
     <svg :viewBox="viewBox">
       <g>
-        <!-- :class="{ 'shape--hidden': shape.hidden }" -->
         <polygon
           class="shape"
           v-for="(shape, index) in shapes"
           :key="index"
           :points="shape.points"
-          :transform="shape.translate"
+          :transform="shape.translate + this.scale"
           v-bind:style="shape.delay"
         />
       </g>
@@ -29,7 +28,7 @@ export default {
     const gridWidth = Math.floor(width / 3) + 1;
     const gridHeight = Math.floor((4 * height) / 3) + 1;
 
-    const duration = 1;
+    const delayScale = 1;
 
     const rt3o2 = Math.sqrt(3) / 2;
 
@@ -60,7 +59,9 @@ export default {
       const translate = "translate(" + x + "," + y + ")";
 
       const delay =
-        "transition-delay: " + (x + y) / (gridWidth + gridHeight) + "s";
+        "transition-delay: " +
+        (delayScale * (x + y)) / (gridWidth + gridHeight) +
+        "s";
 
       shapes.push({
         hidden: false,
@@ -73,6 +74,7 @@ export default {
     return {
       gridWidth: gridWidth,
       shapes: shapes,
+      scale: "",
     };
   },
   computed: {
@@ -84,10 +86,11 @@ export default {
     },
   },
   methods: {
-    click: function () {
-      this.shapes.forEach((shape) => {
-        shape.translate += " scale(0)";
-      });
+    reveal: function () {
+      this.scale = " scale(0)";
+    },
+    hide: function () {
+      this.scale = "";
     },
   },
 };
@@ -102,11 +105,7 @@ export default {
 }
 .shape {
   fill: fill;
-  opacity: 1;
 
   transition: transform 1s ease-in-out;
 }
-/* .shape--hidden {
-  opacity: 0;
-} */
 </style>
