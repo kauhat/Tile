@@ -1,6 +1,7 @@
 <template>
   <div class="tile" @click="reveal" @mouseleave="hide">
     <svg :viewBox="viewBox">
+      <image :href="imgPath" height="100%" width="100%" />
       <g>
         <polygon
           class="shape"
@@ -10,6 +11,7 @@
           :transform="shape.translate + this.scale"
           v-bind:style="shape.delay"
           :fill="colour"
+          :stroke="colour"
         />
       </g>
     </svg>
@@ -25,50 +27,24 @@ function hexagon(width, height) {
 
   const rt3o2 = Math.sqrt(3) / 2;
 
-  let points =
-    // x1 y1
-    "1,0" +
-    // x2 y2
-    " 0.5," +
-    rt3o2 +
-    // x3 y3
-    " -0.5," +
-    rt3o2 +
-    // x4 y4
-    " -1,0" +
-    // x5 y5
-    "-0.5,-" +
-    rt3o2 +
-    // x6 y6
-    "0.5,-" +
-    rt3o2;
+  const points = `1,0 0.5,${rt3o2} -0.5,${rt3o2} -1,0 -0.5,${-rt3o2} 0.5,${-rt3o2}`;
 
-  const xfunc = function (i, gridWidth) {
-    return (i % gridWidth) * 3 + (Math.floor(i / gridWidth) % 2) * 1.5;
-  };
-
-  const yfunc = function (i, gridwidth) {
-    return Math.floor(i / gridWidth) * rt3o2;
-  };
-
-  const translate = (x, y) => `translate(${x},${y})`;
-
-  const delay = (x, y) => {
-    return (
+  const computeShape = function (i, gridwidth) {
+    const x = (i % gridWidth) * 3 + (Math.floor(i / gridWidth) % 2) * 1.5;
+    const y = Math.floor(i / gridWidth) * rt3o2;
+    const translate = `translate(${x},${y})`;
+    const delay =
       "transition-delay: " +
       (delayScale * (x + y)) / (gridWidth + gridHeight) +
-      "s"
-    );
+      "s";
+    return { translate: translate, delay: delay };
   };
 
   return {
     gridWidth: gridWidth,
     gridHeight: gridHeight,
     points: points,
-    xfunc: xfunc,
-    yfunc: yfunc,
-    translate,
-    delay,
+    computeShape: computeShape,
   };
 }
 
@@ -78,6 +54,7 @@ export default {
     height: { type: Number, default: 20 },
     colour: { type: String, default: "#ffd1dc" },
     shapeFn: { type: Function, default: hexagon },
+    imgPath: { type: String, default: "http://placekitten.com/200/200" },
   },
   data: function (props) {
     return {
@@ -91,26 +68,17 @@ export default {
     shapes() {
       const { shapeFn, width, height } = this;
 
-      const {
-        gridWidth,
-        gridHeight,
-        points,
-        xfunc,
-        yfunc,
-        translate,
-        delay,
-      } = shapeFn(width, height);
+      const { gridWidth, gridHeight, points, computeShape } = shapeFn(
+        width,
+        height
+      );
 
       const amount = gridWidth * gridHeight;
 
       return [...Array(amount)].map((value, index) => {
-        const x = xfunc(index, gridWidth);
-        const y = yfunc(index, gridWidth);
-
         return {
           points: points,
-          translate: translate(x, y),
-          delay: delay(x, y),
+          ...computeShape(index, gridWidth),
         };
       });
     },
@@ -135,5 +103,6 @@ export default {
 }
 .shape {
   transition: transform 1s ease-in-out;
+  stroke-width: 0.027;
 }
 </style>

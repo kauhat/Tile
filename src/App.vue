@@ -1,5 +1,6 @@
 <template>
-  <Tile :width="this.width" :height="this.height" :shapeFn="square" />
+  <!-- :width="this.width" :height="this.height" :shapeFn="square" -->
+  <Tile />
 </template>
 
 <script>
@@ -12,8 +13,8 @@ export default {
   },
   data: function () {
     return {
-      width: 10,
-      height: 10,
+      width: 20,
+      height: 20,
       square: function (width, height) {
         const delayScale = 1;
 
@@ -30,31 +31,22 @@ export default {
           // x4 y4
           " 0,1";
 
-        const xfunc = function (i, gridWidth) {
-          return i % gridWidth;
-        };
-
-        const yfunc = function (i, gridwidth) {
-          return Math.floor(i / gridWidth);
-        };
-
-        const translate = (x, y) => `translate(${x},${y})`;
-
-        const delay = (x, y) => {
-          return (
+        const computeShape = function (i, gridwidth) {
+          const x = i % gridWidth;
+          const y = Math.floor(i / gridWidth);
+          const translate = `translate(${x},${y})`;
+          const delay =
             "transition-delay: " +
             (delayScale * (x + y)) / (gridWidth + gridHeight) +
-            "s"
-          );
+            "s";
+          return { translate: translate, delay: delay };
         };
+
         return {
           gridWidth: gridWidth,
           gridHeight: gridHeight,
           points: points,
-          xfunc: xfunc,
-          yfunc: yfunc,
-          translate,
-          delay,
+          computeShape: computeShape,
         };
       },
     };
