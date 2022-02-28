@@ -1,18 +1,15 @@
 <template>
-  <div class="tile">
-    <svg viewBox="0 0 10 10">
+  <div class="tile" @click="click">
+    <svg :viewBox="viewBox">
       <g>
+        <!-- :class="{ 'shape--hidden': shape.hidden }" -->
         <polygon
           class="shape"
-          :class="{ 'shape--hidden': shape.hidden }"
           v-for="(shape, index) in shapes"
           :key="index"
-          :x="shape.x"
-          :y="shape.y"
           :points="shape.points"
           :transform="shape.translate"
-          width="1"
-          height="this.hexHeight"
+          v-bind:style="shape.delay"
         />
       </g>
     </svg>
@@ -21,58 +18,77 @@
 
 <script>
 export default {
-  // props: {
-  //   shapeScale: { type: Number },
-  // },
-  data: function () {
-    const width = 10;
-    const height = 10;
+  props: {
+    width: { type: Number, default: 10 },
+    height: { type: Number, default: 10 },
+    colour: { type: Number, default: 0xffd1dc },
+  },
+  data: function (props) {
+    const { width, height } = props;
 
-    const rt3 = Math.sqrt(3);
+    const gridWidth = Math.floor(width / 3) + 1;
+    const gridHeight = Math.floor((4 * height) / 3) + 1;
+
+    const duration = 1;
+
+    const rt3o2 = Math.sqrt(3) / 2;
 
     let points =
       // x1 y1
       "1,0" +
       // x2 y2
       " 0.5," +
-      rt3 / 2 +
+      rt3o2 +
       // x3 y3
       " -0.5," +
-      rt3 / 2 +
+      rt3o2 +
       // x4 y4
       " -1,0" +
       // x5 y5
       "-0.5,-" +
-      rt3 / 2 +
+      rt3o2 +
       // x6 y6
       "0.5,-" +
-      rt3 / 2;
+      rt3o2;
 
     let shapes = [];
 
-    for (let i = 0; i < width * height; i++) {
-      const x = (i % width) * 3 + (Math.floor(i / width) % 2) * 1.5;
-      const y = (Math.floor(i / width) * rt3) / 2;
+    for (let i = 0; i < gridWidth * gridHeight; i++) {
+      const x = (i % gridWidth) * 3 + (Math.floor(i / gridWidth) % 2) * 1.5;
+      const y = Math.floor(i / gridWidth) * rt3o2;
 
       const translate = "translate(" + x + "," + y + ")";
 
+      const delay =
+        "transition-delay: " + (x + y) / (gridWidth + gridHeight) + "s";
+
       shapes.push({
-        hidden: Math.random() < 0.3,
+        hidden: false,
         points: points,
-        x: x,
-        y: y,
         translate: translate,
+        delay: delay,
       });
     }
 
-    console.log(shapes);
-
     return {
-      // points: "1,0 0.5,0.866 -0.5,0.866 -1,0 -0.5,-0.866 0.5,-0.866",
-      width: width,
+      gridWidth: gridWidth,
       shapes: shapes,
-      height: rt3 / 2,
     };
+  },
+  computed: {
+    viewBox() {
+      return `0 0 ${this.width} ${this.height}`;
+    },
+    fill() {
+      return this.colour;
+    },
+  },
+  methods: {
+    click: function () {
+      this.shapes.forEach((shape) => {
+        shape.translate += " scale(0)";
+      });
+    },
   },
 };
 </script>
@@ -85,10 +101,12 @@ export default {
   height: 100%;
 }
 .shape {
-  fill: palevioletred;
-  opacity: 0.5;
-}
-.shape--hidden {
+  fill: fill;
   opacity: 1;
+
+  transition: transform 1s ease-in-out;
 }
+/* .shape--hidden {
+  opacity: 0;
+} */
 </style>
